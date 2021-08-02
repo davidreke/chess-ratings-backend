@@ -41,7 +41,7 @@ class Player(db.Model):
     LiChess_Rapid = db.Column(db.Integer, nullable=True)
     LiChess_Classical = db.Column(db.Integer, nullable=True)
     LiChess_Correspondence = db.Column(db.Integer, nullable=True)
-    LiChess_Training = db.Column(db.Integer, nullable=True)
+    LiChess_Puzzle = db.Column(db.Integer, nullable=True)
 
 player_post_parser = reqparse.RequestParser()
 player_post_parser.add_argument('FIDE', type=dict)
@@ -77,7 +77,7 @@ LiChess_Parser.add_argument('blitz', type = int, location=('nexted_four',))
 LiChess_Parser.add_argument('rapid', type = int, location=('nexted_four',))
 LiChess_Parser.add_argument('classical', type = int, location=('nexted_four',))
 LiChess_Parser.add_argument('correspondence', type = int, location=('nexted_four',))
-LiChess_Parser.add_argument('training', type = int, location=('nexted_four',))
+LiChess_Parser.add_argument('puzzle', type = int, location=('nexted_four',))
 
 
 
@@ -109,7 +109,12 @@ class Players(Resource):
                 'puzzle':player.ChessCom_Puzzle
             },
             'LiChess':{
-                'bullet':player.LiChess_Bullet, 'blitz':player.LiChess_Blitz, 'rapid':player.LiChess_Rapid, 'classical':player.LiChess_Classical, 'correspondence':player.LiChess_Correspondence, 'training':player.LiChess_Training
+                'bullet':player.LiChess_Bullet, 
+                'blitz':player.LiChess_Blitz, 
+                'rapid':player.LiChess_Rapid, 
+                'classical':player.LiChess_Classical, 
+                'correspondence':player.LiChess_Correspondence, 
+                'puzzle':player.LiChess_Puzzle
             }
             }
             player_list.append(new_player)
@@ -140,7 +145,7 @@ class Players(Resource):
         LiChess_Rapid=player_post_args['LiChess']['rapid'],
         LiChess_Classical=player_post_args['LiChess']['classical'],
         LiChess_Correspondence=player_post_args['LiChess']['correspondence'],
-        LiChess_Training=player_post_args['LiChess']['training'],
+        LiChess_Puzzle=player_post_args['LiChess']['puzzle'],
         )
        
         db.session.add(player)
