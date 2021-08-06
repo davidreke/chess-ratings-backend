@@ -79,6 +79,8 @@ LiChess_Parser.add_argument('classical', type = int, location=('nexted_four',))
 LiChess_Parser.add_argument('correspondence', type = int, location=('nexted_four',))
 LiChess_Parser.add_argument('puzzle', type = int, location=('nexted_four',))
 
+player_delete_parser = reqparse.RequestParser()
+player_delete_parser.add_argument('id', type=int)
 
 
 with app.app_context():
@@ -150,9 +152,17 @@ class Players(Resource):
        
         db.session.add(player)
         db.session.commit()
-        # return player
+
+    def delete(self):
+        player_delete_args=player_delete_parser.parse_args()
+        id=player_delete_args['id']
+        Player.query.filter(Player.id==id).delete()
+        db.session.commit()
+        return 'player deleted'
+
 
 api.add_resource(Players, '/players')
+
 
 if __name__ =="__main__":
     app.run(debug=True)
