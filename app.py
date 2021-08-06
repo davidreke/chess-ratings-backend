@@ -153,12 +153,12 @@ class Players(Resource):
         db.session.add(player)
         db.session.commit()
 
-    def delete(self):
-        player_delete_args=player_delete_parser.parse_args()
-        id=player_delete_args['id']
-        Player.query.filter(Player.id==id).delete()
-        db.session.commit()
-        return 'player deleted'
+    # def delete(self):
+    #     player_delete_args=player_delete_parser.parse_args()
+    #     id=player_delete_args['id']
+    #     Player.query.filter(Player.id==id).delete()
+    #     db.session.commit()
+    #     return 'player deleted'
 
 
 api.add_resource(Players, '/players')
