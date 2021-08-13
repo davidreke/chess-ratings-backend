@@ -156,8 +156,8 @@ class Players(Resource):
 
     def delete(self):
         player_delete_args=player_delete_parser.parse_args()
-        secret=player_delete_args['SECRET']
-        if secret == os.environ.get('SQL_URI'):
+        secret=player_delete_args['secret']
+        if secret == os.environ.get('SECRET'):
             id=player_delete_args['id']
             Player.query.filter(Player.id==id).delete()
             db.session.commit()
