@@ -16,7 +16,17 @@ api = Api(app)
 load_dotenv()
 
 app.config['PROPAGATE_EXCEPTIONS'] = True
-app.config['SQLALCHEMY_DATABASE_URI']=os.environ.get('SQL_URI')
+
+db_url = os.environ.get("SQL_URI")
+
+# Normalize old Heroku URLs
+if db_url and db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+app.config["SQLALCHEMY_DATABASE_URI"] = db_url
+
+
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
 # Ensures SSL is used when connecting to Heroku Postgres
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
