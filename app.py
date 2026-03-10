@@ -1,13 +1,14 @@
 from flask import Flask, request, jsonify
-from flask_restful import Api, Resource, reqparse, fields, marshal_with
+from flask_restful import Api, Resource, reqparse
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
-import os
-import json
 from dataclasses import dataclass
 from flask_cors import CORS
+import os
 
-
+# ---------------------------------------------------------
+# App Setup
+# ---------------------------------------------------------
 
 app = Flask(__name__)
 CORS(app)
@@ -17,172 +18,150 @@ load_dotenv()
 
 app.config['PROPAGATE_EXCEPTIONS'] = True
 
+# ---------------------------------------------------------
+# Database Configuration
+# ---------------------------------------------------------
+
 db_url = os.environ.get("SQL_URI")
 
-# Normalize old Heroku URLs
+# Normalize old Heroku URLs (postgres:// → postgresql://)
 if db_url and db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-
-
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
-# Ensures SSL is used when connecting to Heroku Postgres
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+# Ensure SSL for Heroku Postgres
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "connect_args": {"sslmode": "require"}
 }
 
 db = SQLAlchemy(app)
 
+# ---------------------------------------------------------
+# Models
+# ---------------------------------------------------------
 
 @dataclass
 class Player(db.Model):
-    id =  db.Column(db.Integer, primary_key=True)
-    FIDE_Standard = db.Column(db.Integer, nullable=True)
-    FIDE_Rapid = db.Column(db.Integer, nullable=True)
-    FIDE_Blitz = db.Column(db.Integer, nullable=True)
-    USCF_Regular = db.Column(db.Integer, nullable=True)
-    USCF_Quick = db.Column(db.Integer, nullable=True)
-    USCF_Blitz = db.Column(db.Integer, nullable=True)
-    ChessCom_Bullet = db.Column(db.Integer, nullable=True)
-    ChessCom_Blitz = db.Column(db.Integer, nullable=True)
-    ChessCom_Rapid = db.Column(db.Integer, nullable=True)
-    ChessCom_Daily = db.Column(db.Integer, nullable=True)
-    ChessCom_Puzzle = db.Column(db.Integer, nullable=True)
-    LiChess_Bullet = db.Column(db.Integer, nullable=True)
-    LiChess_Blitz = db.Column(db.Integer, nullable=True)
-    LiChess_Rapid = db.Column(db.Integer, nullable=True)
-    LiChess_Classical = db.Column(db.Integer, nullable=True)
-    LiChess_Correspondence = db.Column(db.Integer, nullable=True)
-    LiChess_Puzzle = db.Column(db.Integer, nullable=True)
+    id: int = db.Column(db.Integer, primary_key=True)
+    FIDE_Standard: int = db.Column(db.Integer, nullable=True)
+    FIDE_Rapid: int = db.Column(db.Integer, nullable=True)
+    FIDE_Blitz: int = db.Column(db.Integer, nullable=True)
+    USCF_Regular: int = db.Column(db.Integer, nullable=True)
+    USCF_Quick: int = db.Column(db.Integer, nullable=True)
+    USCF_Blitz: int = db.Column(db.Integer, nullable=True)
+    ChessCom_Bullet: int = db.Column(db.Integer, nullable=True)
+    ChessCom_Blitz: int = db.Column(db.Integer, nullable=True)
+    ChessCom_Rapid: int = db.Column(db.Integer, nullable=True)
+    ChessCom_Daily: int = db.Column(db.Integer, nullable=True)
+    ChessCom_Puzzle: int = db.Column(db.Integer, nullable=True)
+    LiChess_Bullet: int = db.Column(db.Integer, nullable=True)
+    LiChess_Blitz: int = db.Column(db.Integer, nullable=True)
+    LiChess_Rapid: int = db.Column(db.Integer, nullable=True)
+    LiChess_Classical: int = db.Column(db.Integer, nullable=True)
+    LiChess_Correspondence: int = db.Column(db.Integer, nullable=True)
+    LiChess_Puzzle: int = db.Column(db.Integer, nullable=True)
+
+# ---------------------------------------------------------
+# Parsers
+# ---------------------------------------------------------
 
 player_post_parser = reqparse.RequestParser()
 player_post_parser.add_argument('FIDE', type=dict)
 player_post_parser.add_argument('USCF', type=dict)
-player_post_parser.add_argument('ChessCom', type = dict)
-player_post_parser.add_argument('LiChess', type = dict)
-
-# player_post_args= player_post_parser.parse_args()
-
-FIDE_Parser = reqparse.RequestParser()
-FIDE_Parser.add_argument('standard', type= int, location=('nested_one',))
-FIDE_Parser.add_argument('rapid', type= int, location=('nested_one',))
-FIDE_Parser.add_argument('blitz', type= int, location=('nested_one',))
-# FIDE_args = FIDE_Parser.parse_args(req=player_post_args)
-
-USCF_Parser = reqparse.RequestParser()
-USCF_Parser.add_argument('regular', type=int, location=('nested_two',))
-USCF_Parser.add_argument('quick', type=int, location=('nested_two',))
-USCF_Parser.add_argument('blitz', type=int, location=('nested_two',))
-# USCF_args = USCF_Parser.parse_args(req=player_post_args)
-
-ChessCom_Parser = reqparse.RequestParser()
-ChessCom_Parser.add_argument('bullet', type = int, location=('nexted_three',))
-ChessCom_Parser.add_argument('blitz', type = int, location=('nexted_three',))
-ChessCom_Parser.add_argument('rapid', type = int, location=('nexted_three',))
-ChessCom_Parser.add_argument('daily', type = int, location=('nexted_three',))
-ChessCom_Parser.add_argument('puzzle', type = int, location=('nexted_three',))
-# ChessCom_args=ChessCom_Parser.parse_args(req=player_post_args)
-
-LiChess_Parser = reqparse.RequestParser()
-LiChess_Parser.add_argument('bullet', type = int, location=('nexted_four',))
-LiChess_Parser.add_argument('blitz', type = int, location=('nexted_four',))
-LiChess_Parser.add_argument('rapid', type = int, location=('nexted_four',))
-LiChess_Parser.add_argument('classical', type = int, location=('nexted_four',))
-LiChess_Parser.add_argument('correspondence', type = int, location=('nexted_four',))
-LiChess_Parser.add_argument('puzzle', type = int, location=('nexted_four',))
+player_post_parser.add_argument('ChessCom', type=dict)
+player_post_parser.add_argument('LiChess', type=dict)
 
 player_delete_parser = reqparse.RequestParser()
 player_delete_parser.add_argument('id', type=int)
 player_delete_parser.add_argument('secret', type=str)
 
+# ---------------------------------------------------------
+# Routes
+# ---------------------------------------------------------
 
-@app.before_first_request
-def initialize_database():
-    db.create_all()
-
-   
+@app.route("/")
+def home():
+    return "Backend is running"
 
 class Players(Resource):
     def get(self):
-        result =Player.query.all()
-        player_list=[]
-        for player in result:
-            new_player={'FIDE':{
-                'standard':player.FIDE_Standard,
-                'rapid':player.FIDE_Rapid,
-                'blitz':player.FIDE_Blitz
-            },
-            'USCF':{
-                'regular':player.USCF_Regular,
-                'quick':player.USCF_Quick,
-                'blitz':player.USCF_Blitz
-            },
-            'ChessCom':{
-                'bullet':player.ChessCom_Bullet,
-                'blitz': player.ChessCom_Blitz,
-                'rapid':player.ChessCom_Rapid,
-                'daily':player.ChessCom_Daily,
-                'puzzle':player.ChessCom_Puzzle
-            },
-            'LiChess':{
-                'bullet':player.LiChess_Bullet, 
-                'blitz':player.LiChess_Blitz, 
-                'rapid':player.LiChess_Rapid, 
-                'classical':player.LiChess_Classical, 
-                'correspondence':player.LiChess_Correspondence, 
-                'puzzle':player.LiChess_Puzzle
-            }
-            }
-            player_list.append(new_player)
-            
-        return jsonify(player_list)
+        players = Player.query.all()
+        output = []
+
+        for p in players:
+            output.append({
+                "FIDE": {
+                    "standard": p.FIDE_Standard,
+                    "rapid": p.FIDE_Rapid,
+                    "blitz": p.FIDE_Blitz
+                },
+                "USCF": {
+                    "regular": p.USCF_Regular,
+                    "quick": p.USCF_Quick,
+                    "blitz": p.USCF_Blitz
+                },
+                "ChessCom": {
+                    "bullet": p.ChessCom_Bullet,
+                    "blitz": p.ChessCom_Blitz,
+                    "rapid": p.ChessCom_Rapid,
+                    "daily": p.ChessCom_Daily,
+                    "puzzle": p.ChessCom_Puzzle
+                },
+                "LiChess": {
+                    "bullet": p.LiChess_Bullet,
+                    "blitz": p.LiChess_Blitz,
+                    "rapid": p.LiChess_Rapid,
+                    "classical": p.LiChess_Classical,
+                    "correspondence": p.LiChess_Correspondence,
+                    "puzzle": p.LiChess_Puzzle
+                }
+            })
+
+        return jsonify(output)
+
     def post(self):
-        player_post_args = player_post_parser.parse_args()
-        FIDE_args=FIDE_Parser.parse_args(req=player_post_args)
-        USCF_args=USCF_Parser.parse_args(req=player_post_args)
-        ChessCom_args=ChessCom_Parser.parse_args(req=player_post_args)
-        LiChess_args=LiChess_Parser.parse_args(req=player_post_args)
+        data = player_post_parser.parse_args()
 
-
-        player= Player(
-        FIDE_Standard= player_post_args['FIDE']['standard'],
-        FIDE_Rapid=player_post_args['FIDE']['rapid'],
-        FIDE_Blitz=player_post_args['FIDE']['blitz'],
-        USCF_Regular=player_post_args['USCF']['regular'],
-        USCF_Quick=player_post_args['USCF']['quick'],
-        USCF_Blitz=player_post_args['USCF']['blitz'],
-        ChessCom_Bullet=player_post_args['ChessCom']['bullet'],
-        ChessCom_Blitz=player_post_args['ChessCom']['blitz'],
-        ChessCom_Rapid=player_post_args['ChessCom']['rapid'],
-        ChessCom_Daily=player_post_args['ChessCom']['daily'],
-        ChessCom_Puzzle=player_post_args['ChessCom']['puzzle'],
-        LiChess_Bullet=player_post_args['LiChess']['bullet'],
-        LiChess_Blitz=player_post_args['LiChess']['blitz'],
-        LiChess_Rapid=player_post_args['LiChess']['rapid'],
-        LiChess_Classical=player_post_args['LiChess']['classical'],
-        LiChess_Correspondence=player_post_args['LiChess']['correspondence'],
-        LiChess_Puzzle=player_post_args['LiChess']['puzzle'],
+        player = Player(
+            FIDE_Standard=data["FIDE"]["standard"],
+            FIDE_Rapid=data["FIDE"]["rapid"],
+            FIDE_Blitz=data["FIDE"]["blitz"],
+            USCF_Regular=data["USCF"]["regular"],
+            USCF_Quick=data["USCF"]["quick"],
+            USCF_Blitz=data["USCF"]["blitz"],
+            ChessCom_Bullet=data["ChessCom"]["bullet"],
+            ChessCom_Blitz=data["ChessCom"]["blitz"],
+            ChessCom_Rapid=data["ChessCom"]["rapid"],
+            ChessCom_Daily=data["ChessCom"]["daily"],
+            ChessCom_Puzzle=data["ChessCom"]["puzzle"],
+            LiChess_Bullet=data["LiChess"]["bullet"],
+            LiChess_Blitz=data["LiChess"]["blitz"],
+            LiChess_Rapid=data["LiChess"]["rapid"],
+            LiChess_Classical=data["LiChess"]["classical"],
+            LiChess_Correspondence=data["LiChess"]["correspondence"],
+            LiChess_Puzzle=data["LiChess"]["puzzle"]
         )
-       
+
         db.session.add(player)
         db.session.commit()
+        return {"message": "Player added"}, 201
 
     def delete(self):
-        player_delete_args=player_delete_parser.parse_args()
-        secret=player_delete_args['secret']
-        if secret == os.environ.get('SECRET'):
-            id=player_delete_args['id']
-            Player.query.filter(Player.id==id).delete()
-            db.session.commit()
-            return 'player deleted'
-        else:
-            return 'wrong secret'
+        args = player_delete_parser.parse_args()
+        if args["secret"] != os.environ.get("SECRET"):
+            return {"error": "wrong secret"}, 403
 
+        Player.query.filter_by(id=args["id"]).delete()
+        db.session.commit()
+        return {"message": "player deleted"}
 
-api.add_resource(Players, '/players')
+api.add_resource(Players, "/players")
 
+# ---------------------------------------------------------
+# Local Dev Entry Point
+# ---------------------------------------------------------
 
-if __name__ =="__main__":
+if __name__ == "__main__":
     app.run(debug=True)
