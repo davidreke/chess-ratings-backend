@@ -18,6 +18,10 @@ load_dotenv()
 app.config['PROPAGATE_EXCEPTIONS'] = True
 app.config['SQLALCHEMY_DATABASE_URI']=os.environ.get('SQL_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
+# Ensures SSL is used when connecting to Heroku Postgres
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    "connect_args": {"sslmode": "require"}
+}
 
 db = SQLAlchemy(app)
 
@@ -84,7 +88,8 @@ player_delete_parser.add_argument('id', type=int)
 player_delete_parser.add_argument('secret', type=str)
 
 
-with app.app_context():
+@app.before_first_request
+def initialize_database():
     db.create_all()
 
    
