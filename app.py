@@ -86,40 +86,43 @@ def home():
     return "Backend is running"
 
 class Players(Resource):
+    # def get(self):
+    #     players = Player.query.all()
+    #     output = []
+
+    #     for p in players:
+    #         output.append({
+    #             "FIDE": {
+    #                 "standard": p.FIDE_Standard,
+    #                 "rapid": p.FIDE_Rapid,
+    #                 "blitz": p.FIDE_Blitz
+    #             },
+    #             "USCF": {
+    #                 "regular": p.USCF_Regular,
+    #                 "quick": p.USCF_Quick,
+    #                 "blitz": p.USCF_Blitz
+    #             },
+    #             "ChessCom": {
+    #                 "bullet": p.ChessCom_Bullet,
+    #                 "blitz": p.ChessCom_Blitz,
+    #                 "rapid": p.ChessCom_Rapid,
+    #                 "daily": p.ChessCom_Daily,
+    #                 "puzzle": p.ChessCom_Puzzle
+    #             },
+    #             "LiChess": {
+    #                 "bullet": p.LiChess_Bullet,
+    #                 "blitz": p.LiChess_Blitz,
+    #                 "rapid": p.LiChess_Rapid,
+    #                 "classical": p.LiChess_Classical,
+    #                 "correspondence": p.LiChess_Correspondence,
+    #                 "puzzle": p.LiChess_Puzzle
+    #             }
+    #         })
+
+    #     return jsonify(output)
+
     def get(self):
-        players = Player.query.all()
-        output = []
-
-        for p in players:
-            output.append({
-                "FIDE": {
-                    "standard": p.FIDE_Standard,
-                    "rapid": p.FIDE_Rapid,
-                    "blitz": p.FIDE_Blitz
-                },
-                "USCF": {
-                    "regular": p.USCF_Regular,
-                    "quick": p.USCF_Quick,
-                    "blitz": p.USCF_Blitz
-                },
-                "ChessCom": {
-                    "bullet": p.ChessCom_Bullet,
-                    "blitz": p.ChessCom_Blitz,
-                    "rapid": p.ChessCom_Rapid,
-                    "daily": p.ChessCom_Daily,
-                    "puzzle": p.ChessCom_Puzzle
-                },
-                "LiChess": {
-                    "bullet": p.LiChess_Bullet,
-                    "blitz": p.LiChess_Blitz,
-                    "rapid": p.LiChess_Rapid,
-                    "classical": p.LiChess_Classical,
-                    "correspondence": p.LiChess_Correspondence,
-                    "puzzle": p.LiChess_Puzzle
-                }
-            })
-
-        return jsonify(output)
+        return jsonify({"status": "players endpoint reachable"})
 
     def post(self):
         data = player_post_parser.parse_args()
